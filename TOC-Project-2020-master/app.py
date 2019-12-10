@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from linebot import LineBotApi, WebhookParser
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
-
+import random
 from fsm import TocMachine
 from utils import send_text_message
 
@@ -19,12 +19,18 @@ machine = TocMachine(
         {
             "trigger": "advance",
             "source": "user",
+            "dest": "user",
+            "conditions": "is_going_to_user",
+        },
+        {
+            "trigger": "advance",
+            "source": "user",
             "dest": "state1",
             "conditions": "is_going_to_state1",
         },
         {
             "trigger": "advance",
-            "source": "user",
+            "source": "state1",
             "dest": "state2",
             "conditions": "is_going_to_state2",
         },
@@ -102,9 +108,15 @@ def webhook_handler():
             continue
         print(f"\nFSM STATE: {machine.state}")
         print(f"REQUEST BODY: \n{body}")
+        
         response = machine.advance(event)
-        if response == False:
-            send_text_message(event.reply_token, "Not Entering any State")
+        #send_text_message(event.reply_token, "請各方開始提問")
+        if (response == False and event.message.text.lower()!="ok") :
+            x=random.randrange(0,2)
+            if(x==0):
+                send_text_message(event.reply_token, "我不知道您的問題是指什麼？但我想世人自然會有判斷。")
+            if(x==1):
+                send_text_message(event.reply_token, "您的提問有些唯恐天下不亂的意思")
 
     return "OK"
 
